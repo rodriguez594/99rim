@@ -1,8 +1,7 @@
-// 99RIM AI: picks the rhymes that fit a lyric line and suggests ways to finish it.
+// 99RIM AI sort: orders the rhymes the app found, best to write with first.
 //
-// The app finds rhymes itself, from pronunciations (rhyme.js). Claude only chooses among
-// those candidates, so it can't invent words that don't rhyme. It may add a few phrases
-// that end on a candidate word.
+// The app finds rhymes itself, from pronunciations (rhyme.js). Claude only reorders
+// those words and never adds any, so the list stays real rhymes.
 //
 // Deploy: supabase functions deploy rim-ai
 // Secret:  supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
@@ -25,30 +24,24 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
 const Input = z.object({
-  line: z.string().trim().min(1).max(300),
+  // The word, phrase or whole line the user searched for.
+  text: z.string().trim().min(1).max(300),
   lang: z.enum(["da", "en"]).default("da"),
-  // Rhymes the app already found for the line's last word, best first.
+  // Rhymes the app found, best sound match first.
   candidates: z.array(z.string().trim().min(1).max(40)).min(1).max(150),
 });
 
 const Output = z.object({
-  picks: z.array(z.object({
-    word: z.string().describe("A candidate word, or a short phrase ending in one"),
-    why: z.string().describe("Max 12 words: why it fits the line"),
-  })).describe("The 8-12 best fits, best first"),
-  lines: z.array(z.string()).describe("3 suggested next lines that end in one of the picks"),
+  words: z.array(z.string()).describe("The candidate words, best first. Leave out words that are useless to write with."),
 });
 
 const SYSTEM = {
-  da: `Du hjælper danske sangskrivere og rappere med rim. Du får en linje og en liste af ord, der rimer på linjens sidste ord.
-Vælg de 8-12 ord, der passer bedst til linjens betydning, stemning og rytme. Brug kun ord fra listen, eller korte, naturlige danske vendinger der slutter på et ord fra listen (fx "i mit hjerte").
-Foretræk almindelige ord frem for navne og sjældne ord, og flerstavelsesrim frem for enstavelsesrim.
-Skriv derefter 3 forslag til en næste linje, der matcher linjens stil og længde og slutter på et af dine valg.
-Svar på dansk.`,
-  en: `You help songwriters and rappers find rhymes. You get a line and a list of words that rhyme with its last word.
-Pick the 8-12 words that best fit the line's meaning, mood and rhythm. Only use words from the list, or short natural phrases ending in a word from the list.
-Prefer common words over names and rare words, and multi-syllable rhymes over single-syllable ones.
-Then write 3 suggestions for a next line that match the line's style and length and end on one of your picks.`,
+  da: `Du sorterer rim for danske sangskrivere og rappere. Du får det, brugeren søgte på (et ord, en vending eller en hel linje), og en liste af ord, der rimer på det.
+Sortér ordene, så de bedste at skrive med kommer først: almindelige, levende ord før navne, forkortelser, engelske ord og sjældne ord; flerstavelsesrim før enstavelsesrim; og hvis der er en linje, ord der passer til linjens betydning og stemning.
+Brug kun ord fra listen, stavet præcis som i listen. Udelad ord, der er ubrugelige at skrive med.`,
+  en: `You sort rhymes for songwriters and rappers. You get what the user searched for (a word, a phrase or a whole line) and a list of words that rhyme with it.
+Order the words so the best ones to write with come first: common, vivid words before names, abbreviations and rare words; multi-syllable rhymes before single-syllable ones; and if there's a line, words that fit its meaning and mood.
+Only use words from the list, spelled exactly as in the list. Leave out words that are useless to write with.`,
 };
 
 // Best effort: each running instance allows 20 requests per minute per IP.
@@ -69,7 +62,7 @@ Deno.serve(async (req) => {
 
   const parsed = Input.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return json({ error: "bad_request" }, 400);
-  const { line, lang, candidates } = parsed.data;
+  const { text, lang, candidates } = parsed.data;
 
   try {
     const res = await client.beta.messages.parse({
@@ -79,10 +72,13 @@ Deno.serve(async (req) => {
       fallbacks: "default",
       output_config: { effort: "low", format: betaZodOutputFormat(Output) },
       system: SYSTEM[lang],
-      messages: [{ role: "user", content: `Linje: ${line}\n\nRim: ${candidates.join(", ")}` }],
+      messages: [{ role: "user", content: `Søgning: ${text}\n\nRim: ${candidates.join(", ")}` }],
     });
     if (res.stop_reason === "refusal" || !res.parsed_output) return json({ error: "no_answer" }, 502);
-    return json(res.parsed_output);
+    // Keep only real candidates, once each.
+    const allowed = new Set(candidates);
+    const words = [...new Set(res.parsed_output.words)].filter((w) => allowed.has(w));
+    return json({ words });
   } catch (e) {
     if (e instanceof Anthropic.RateLimitError) return json({ error: "busy" }, 503);
     if (e instanceof Anthropic.APIError) return json({ error: "ai_error", status: e.status }, 502);

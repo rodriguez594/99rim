@@ -25,7 +25,7 @@ body {
 
 /* Sections: each tab is its own scrolling page above the tab bar. */
 .view {
-  position: fixed; inset: 0 0 var(--tabh) var(--railw); overflow-y: auto; -webkit-overflow-scrolling: touch;
+  position: fixed; inset: 0 0 var(--tabh) var(--railw); overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
 .page {
@@ -42,7 +42,7 @@ body {
 
 .tabbar {
   position: fixed; inset: auto 0 0 0; z-index: 3; height: var(--tabh); box-sizing: border-box;
-  padding: 6px 4px var(--sab); display: grid; grid-template-columns: repeat(4, 1fr);
+  padding: 6px 4px var(--sab); display: grid; grid-template-columns: repeat(3, 1fr);
   background: var(--bg); border-top: 1px solid var(--faint);
 }
 .tabbar button {
@@ -77,8 +77,10 @@ body {
 .seg label small { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em; }
 .seg input:checked + label { background: var(--fg); color: var(--bg); }
 .seg input:focus-visible + label { outline: 1px solid var(--fg); outline-offset: 2px; }
-.filters { display: grid; gap: 0.8rem; }
+.filters { display: grid; gap: 1rem; }
 .filters .seg { max-width: 26rem; }
+.frow { display: grid; gap: 0.55rem; }
+.flabel { font: 500 0.62rem/1 var(--font-ui); letter-spacing: 0.24em; text-transform: uppercase; color: var(--dim); }
 
 .chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
 .chip {
@@ -91,7 +93,8 @@ body {
 
 /* Results: words grouped by how many syllables they match */
 .results { display: grid; gap: 1.8rem; }
-.group { display: grid; gap: 0.7rem; }
+.group { display: grid; gap: 0.7rem; justify-items: start; }
+.group .words { justify-self: stretch; }
 .group h3 { display: flex; gap: 0.8rem; align-items: baseline; }
 .group h3 span { color: var(--faint); letter-spacing: 0.1em; }
 .words { display: flex; flex-wrap: wrap; gap: 0.3rem 0.4rem; }
@@ -130,14 +133,9 @@ textarea:focus { outline: none; border-bottom-color: var(--fg); }
 textarea.pad { font-size: 1rem; line-height: 1.7; border: 1px solid var(--faint); border-radius: 14px; padding: 0.9rem 1rem; min-height: 14rem; }
 textarea.pad:focus { border-color: var(--dim); }
 
-/* Line tab: AI picks */
-.pick { display: grid; grid-template-columns: auto 1fr; gap: 0.2rem 1rem; align-items: baseline; padding: 0.8rem 0; border-top: 1px solid var(--faint); }
-.pick .w { grid-row: span 2; }
-.pick em { font-style: normal; color: var(--dim); font-size: 0.8rem; line-height: 1.45; }
-.sugg { margin: 0; padding: 0.9rem 1rem; background: var(--panel); border-radius: 14px; font: 1rem/1.5 var(--font-mono); cursor: pointer; }
-.sugg:hover { background: #2e3236; }
-.ai-list { display: grid; gap: 0.6rem; }
-.spinner { width: 18px; height: 18px; border: 1.5px solid var(--faint); border-top-color: var(--fg); border-radius: 50%; animation: spin 0.8s linear infinite; }
+/* Shown while AI sorts */
+.busy { display: flex; gap: 0.7rem; align-items: center; margin: 0; color: var(--dim); font-size: 0.8rem; }
+.spinner { width: 16px; height: 16px; border: 1.5px solid var(--faint); border-top-color: var(--fg); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Notebook */
@@ -212,4 +210,3 @@ html.in-frame { --sat: 62px; --sab: 34px; }
 .home-ind { position: absolute; bottom: 8px; left: 50%; width: 140px; height: 5px; border-radius: 3px; transform: translateX(-50%); background: var(--fg); opacity: 0.9; z-index: 2; pointer-events: none; }
 
 @media (prefers-reduced-motion: reduce) { .word-sheet { animation: none; } .spinner { animation-duration: 2s; } }
-#line-ai-body { display: grid; gap: 1.2rem; }
