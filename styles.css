@@ -163,6 +163,7 @@ textarea.pad:focus { border-color: var(--dim); }
 .ws-btn.dim { color: var(--dim); }
 @keyframes up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 
+.env-badge { position: fixed; left: 50%; top: calc(6px + var(--sat)); transform: translateX(-50%); z-index: 10; pointer-events: none; background: #e8c36a; color: #1f2124; font: 600 0.6rem/1 var(--font-ui); letter-spacing: 0.2em; padding: 0.3rem 0.6rem; border-radius: 999px; }
 .toast { position: fixed; left: 50%; top: calc(20px + var(--sat)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 0.6rem 1rem; border-radius: 999px; font-size: 0.78rem; letter-spacing: 0.06em; z-index: 9; white-space: nowrap; }
 
 /* Computer: tabs move to a rail on the left, words get more room. */

@@ -7,6 +7,13 @@
   // The anon key is meant to be public.
   const AI = { url: "", anonKey: "" };
 
+  // prod.99rim.dk is where changes land first; 99rim.dk is the live site.
+  if (location.hostname.startsWith("prod.")) {
+    document.getElementById("env-badge").hidden = false;
+    document.title = "99RIM · prod";
+    const robots = document.createElement("meta"); robots.name = "robots"; robots.content = "noindex"; document.head.appendChild(robots);
+  }
+
   // ---------- Phone view on desktop (same as 99MS) ----------
   const framed = window.self !== window.top;
   if (framed) document.documentElement.classList.add("in-frame");

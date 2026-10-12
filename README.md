@@ -20,7 +20,19 @@ Then open http://localhost:8000.
 
 ## Hosting
 
-GitHub Pages from the `main` branch, root folder (Settings → Pages). For the custom domain, add a `CNAME` file containing the domain, and point the domain's DNS at GitHub Pages.
+| | Address | Repo | Updates |
+|---|---|---|---|
+| Prod (changes land here first) | https://prod.99rim.dk | `rodriguez594/99rim-prod` | every change |
+| Live | https://99rim.dk | `rodriguez594/99rim` (this repo) | only on "deploy" |
+
+Both are GitHub Pages from the `main` branch, root folder. The `CNAME` file sets each repo's domain, so it differs between the two repos: never copy it across. The prod site shows a yellow PROD badge and isn't indexed by search engines.
+
+DNS for 99rim.dk:
+- `A` records for `99rim.dk` → 185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153
+- `CNAME` `www` → `rodriguez594.github.io`
+- `CNAME` `prod` → `rodriguez594.github.io`
+
+Then in each repo, Settings → Pages: source "Deploy from a branch", `main`, `/ (root)`; check the custom domain; tick "Enforce HTTPS" once GitHub has issued the certificate.
 
 ## AI sort
 
